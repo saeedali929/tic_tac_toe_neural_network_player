@@ -1,0 +1,102 @@
+import random
+
+# Function to simulate a Tic-Tac-Toe game
+def minimax(board, player):
+    # Base case: Check for game over
+    winner = check_winner(board)
+    if winner == 1:
+        return 10
+    elif winner == -1:
+        return -10
+    elif 0 not in board:
+        return 0
+
+    moves = []
+    for i, cell in enumerate(board):
+        if cell == 0:
+            # Make a move
+            board[i] = player
+            # Calculate the score for this move
+            score = minimax(board, -player)
+            # Undo the move
+            board[i] = 0
+            # Add the move and its score to the list
+            moves.append((score, i))
+
+    # Choose the best move based on the current player
+    if player == 1:
+        return max(moves)[0]
+    else:
+        return min(moves)[0]
+
+def get_best_move(board, player):
+    moves = []
+    for i, cell in enumerate(board):
+        if cell == 0:
+            board[i] = player
+            score = minimax(board, -player)
+            board[i] = 0
+            moves.append((score, i))
+    return max(moves)[1]
+
+def play_game():
+    board = [0] * 9  # Initialize an empty board
+    moves = []  # Store the moves made in the game
+    player = 1  # Start with player X
+
+    while True:
+        if player == 1:
+            # Player X's turn
+            move = get_best_move(board, player)
+        else:
+            # Player O's turn (assuming player O is the AI)
+            move = random.choice([i for i, cell in enumerate(board) if cell == 0])
+
+        # Make the move
+        board[move] = player
+        moves.append((board[:], move))
+
+        # Check for game over
+        winner = check_winner(board)
+        if winner != 0 or 0 not in board:
+            break
+
+        # Switch player
+        player *= -1
+
+    return moves
+
+
+# Function to check for a winner
+def check_winner(board):
+    # Check rows, columns, and diagonals for a winner
+    winning_combos = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+    for combo in winning_combos:
+        if board[combo[0]] == board[combo[1]] == board[combo[2]] != 0:
+            return board[combo[0]]
+    return 0  # No winner
+
+# Generate data for training
+num_games = 1000
+dataset = []
+for _ in range(num_games):
+    game_moves = play_game()
+    dataset.extend(game_moves)
+
+# Save the dataset to a file (e.g., CSV or JSON)
+# Code to save dataset to file goes here...
+import csv
+
+# Define the file name
+file_name = "tic_tac_toe_dataset.csv"
+
+# Write the dataset to the CSV file
+with open(file_name, mode='w', newline='') as file:
+    writer = csv.writer(file)
+    # Write the header
+    writer.writerow(['Board State', 'Move'])
+    # Write each row of the dataset
+    for board_state, move in dataset:
+        writer.writerow([board_state, move])
+
+print(f"Dataset saved to {file_name}")
